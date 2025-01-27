@@ -221,6 +221,7 @@ class VocabularyApp {
         // Tìm từ trong danh sách
         const match = this.manager.findWord(wordToCheck);
         const findExis = this.manager.correctWordsListEl.find(s=>s.word.toLowerCase() === wordToCheck.toLowerCase())
+        let resultCount = undefined;
         if (match && !findExis) {
             
             this.checkResult.style.color = 'green';
@@ -231,7 +232,7 @@ class VocabularyApp {
 
             this.manager.correctWordsListEl.push({ word : match.word , description : match.description });
             this.correctWordsListEl.innerHTML='';
-            let resultCount = `${this.manager.correctWordsListEl.length}/ ${this.manager.vocabularyList.length}`
+            resultCount = `${this.manager.correctWordsListEl.length}/ ${this.manager.vocabularyList.length}`
             this.checkResult.textContent = `"${match.word}" : ${match.description} ( ${resultCount} )`;
             this.manager.correctWordsListEl.forEach(({ word, description }) => {
                 const listItem = document.createElement('li');
@@ -250,8 +251,9 @@ class VocabularyApp {
                 const speech = new SpeechSynthesisUtterance(wordToCheck);
                     speech.lang = 'en-US';
                     window.speechSynthesis.speak(speech);
+                resultCount = `${this.manager.correctWordsListEl.length}/ ${this.manager.vocabularyList.length}`
             })()
-            let message = !findExis ? 'Incorrect !' : 'Exis !'
+            let message = !findExis ? 'Incorrect !' : `${findExis.word} : ${findExis.description} (${resultCount||'N/A'})`
             this.checkResult.textContent = message;
             this.checkResult.style.color = 'red';
         }

@@ -138,3 +138,11 @@ h2 {
 .d-none{
     display: none !important;
 }
+
+ul {
+    max-height: 300px; /* Chiều cao tối đa của ul */
+    overflow-y: auto;  /* Kích hoạt cuộn dọc */
+    overflow-x: hidden; /* Ẩn cuộn ngang (nếu cần) */
+    padding: 10px;     /* Khoảng cách bên trong ul */
+    border: 1px solid #ccc; /* Viền để dễ nhìn */
+  }

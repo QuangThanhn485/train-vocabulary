@@ -120,10 +120,10 @@ h2 {
 .right-section {
     flex-grow: 1;
     padding: 20px;
+    padding-top: 5px;
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     transition: flex-grow 0.3s ease;
 }
@@ -144,5 +144,130 @@ ul {
     overflow-y: auto;  /* Kích hoạt cuộn dọc */
     overflow-x: hidden; /* Ẩn cuộn ngang (nếu cần) */
     padding: 10px;     /* Khoảng cách bên trong ul */
-    border: 1px solid #ccc; /* Viền để dễ nhìn */
+    /* border: 1px solid #ccc; Viền để dễ nhìn */
   }
+
+.step2{
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Arial', sans-serif;
+    }
+
+    body {
+        background-color: #f0f2f5;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 500px;
+    }
+
+    h1 {
+        color: #1a73e8;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 1.8rem;
+    }
+
+    .input-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+    }
+
+    input[type="text"] {
+        flex: 1;
+        padding: 12px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+        outline: none;
+        border-color: #1a73e8;
+    }
+
+    .sound-button {
+        background-color: #1a73e8;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 5px;
+    }
+
+    .sound-button:hover {
+        background-color: #1557b0;
+    }
+
+    .sound-button i {
+        font-size: 16px;
+    }
+
+    .progress-container {
+        background-color: #e0e0e0;
+        border-radius: 8px;
+        height: 12px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        background-color: #1a73e8;
+        width: 65%;
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.3s ease;
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 1.5rem;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+        }
+        
+        .input-row {
+            flex-direction: column;
+        }
+        
+        .sound-button {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    /* Ví dụ hiệu ứng nhấp nháy đơn giản */
+    .blink {
+        animation: blink-animation 0.5s linear 2; /* 0.5s và lặp 2 lần */
+    }
+    
+    @keyframes blink-animation {
+        0%, 100% { 
+        opacity: 1; 
+        }
+        50% { 
+        opacity: 0; 
+        }
+    }
+}

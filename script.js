@@ -1,467 +1,397 @@
 /**
- * Quản lý danh sách từ vựng và localStorage
+ * VocabularyManager: Quản lý danh sách từ vựng và localStorage
  */
 class VocabularyManager {
     constructor() {
-        this.vocabularyList = [];
-        this.correctWordsListEl = [];
-        this.loadFromLocalStorage();
+      this.vocabularyList = [];
+      this.correctWords = []; // Lưu các từ đã kiểm tra đúng
+      this.loadFromLocalStorage();
     }
-
-    /**
-     * Lưu từ vựng vào localStorage
-     */
+  
     saveToLocalStorage() {
-        localStorage.setItem('vocabulary', JSON.stringify(this.vocabularyList));
+      localStorage.setItem('vocabulary', JSON.stringify(this.vocabularyList));
     }
-
-    /**
-     * Tải từ vựng từ localStorage
-     */
+  
     loadFromLocalStorage() {
-        const storedVocabulary = localStorage.getItem('vocabulary');
-        if (storedVocabulary) {
-            this.vocabularyList = JSON.parse(storedVocabulary);
-        }
+      const storedVocabulary = localStorage.getItem('vocabulary');
+      if (storedVocabulary) {
+        this.vocabularyList = JSON.parse(storedVocabulary);
+      }
     }
-
-    /**
-     * Thêm một từ vựng mới
-     * @param {string} word
-     * @param {string} description - Giải thích (description) của từ
-     */
+  
     addWord(word, description) {
-        this.vocabularyList.push({ word, description });
-        this.saveToLocalStorage();
+      this.vocabularyList.push({ word, description });
+      this.saveToLocalStorage();
     }
-
-    /**
-     * Tìm một từ vựng trong danh sách
-     * @param {string} wordToFind
-     * @returns {object|null}
-     */
+  
     findWord(wordToFind) {
-        return this.vocabularyList.find(item =>
-            item.word.toLowerCase() === wordToFind.toLowerCase()
-        );
+      return this.vocabularyList.find(
+        item => item.word.toLowerCase() === wordToFind.toLowerCase()
+      );
     }
-
-    /**
-     * Xóa từ vựng khỏi danh sách
-     * @param {string} word
-     */
+  
     removeWord(word) {
-        this.vocabularyList = this.vocabularyList.filter(
-            item => item.word !== word
-        );
-        this.saveToLocalStorage();
+      this.vocabularyList = this.vocabularyList.filter(
+        item => item.word !== word
+      );
+      this.saveToLocalStorage();
     }
-}
-
-/**
- * Quản lý giao diện và sự kiện (events)
- */
-class VocabularyApp {
+  }
+  
+  /**
+   * VocabularyApp: Quản lý giao diện và sự kiện
+   */
+  class VocabularyApp {
     constructor() {
-        this.train = document.getElementById('train');
-        this.step1 = document.getElementById('step-1');
-        this.step2 = document.getElementById('step-2');
-        this.step3 = document.getElementById('step-3');
-
-        // Lưu trữ các phần tử HTML
-        this.toggleAddButton = document.getElementById('toggle-add-button');
-        this.addSection = document.getElementById('add-section');
-        this.addVocabularySection = document.getElementById('add-vocabulary-section');
-        this.toggleIcon = document.getElementById('toggle-icon');
-
-        this.vocabularyInput = document.getElementById('vocabulary-input');
-        this.descriptionInput = document.getElementById('description-input');
-        this.addWordButton = document.getElementById('add-word-button');
-        this.vocabularyListEl = document.getElementById('vocabulary-list');
-
-        // Tạo instance (đối tượng) của class VocabularyManager
-        this.manager = new VocabularyManager();
-
-        // Thêm 2 biến để đếm số lần kiểm tra và số lần đúng
-        this.totalAttempts = 0;
-        this.correctCount = 0;
+      // Lấy các phần tử DOM cố định
+      this.trainContainer = document.getElementById('train');
+      this.stepButtons = {
+        step1: document.getElementById('step-1'),
+        step2: document.getElementById('step-2'),
+        step3: document.getElementById('step-3')
+      };
+  
+      this.toggleAddButton = document.getElementById('toggle-add-button');
+      this.addSection = document.getElementById('add-section');
+      this.addVocabularySection = document.getElementById('add-vocabulary-section');
+      this.toggleIcon = document.getElementById('toggle-icon');
+      this.vocabularyInput = document.getElementById('vocabulary-input');
+      this.descriptionInput = document.getElementById('description-input');
+      this.addWordButton = document.getElementById('add-word-button');
+      this.vocabularyListElement = document.getElementById('vocabulary-list');
+  
+      this.manager = new VocabularyManager();
+  
+      // Biến đếm
+      this.totalAttempts = 0;
+      this.correctCount = 0;
+  
+      // Gán sự kiện cố định
+      this.addWordButton.addEventListener('click', () => this.handleAddWord());
+      this.toggleAddButton.addEventListener('click', () => this.toggleAddSection());
     }
-
-    /**
-     * Khởi tạo (initialize) các sự kiện
-     */
+  
     init() {
-        // Lần đầu tải trang, hiển thị danh sách từ vựng
-        this.renderVocabularyList();
-        this.step1.addEventListener('click', () => {
-            this.step1.classList.add('active');
-            this.step2.classList.remove('active');
-            this.step3.classList.remove('active');
-            this.train.innerHTML = `
-                <div class="step2 container mt-5">
-                    <h1>STEP 1: check word</h1>
-                    <div id="check-result"></div>
-                    <input type="text" id="check-input" placeholder="Enter a word to check..." />
-                    <button class="d-none" id="check-word-button">Check</button>
-                    <ul id="correct-words-list"></ul>
-                <div>
-            `;
-            this.correctWordsListEl = document.getElementById('correct-words-list');
-
-            this.checkResult = document.getElementById('check-result');
-            this.checkInput = document.getElementById('check-input');
-            this.checkWordButton = document.getElementById('check-word-button');
-        
-    
-            this.addWordButton.addEventListener('click', () => {
-                this.handleAddWord();
-            });
-    
-            this.checkWordButton.addEventListener('click', () => {
-                this.handleCheckWord();
-            });
-    
-            // Khi nhấn Enter trong ô check-input cũng gọi hàm checkWord
-            this.checkInput.addEventListener('keyup', (event) => {
-                if (event.key === 'Enter') {
-                    this.handleCheckWord();
-                }
-            });
-            this.descriptionInput.addEventListener('keyup', (event) => {
-                if (event.key === 'Enter') {
-                    this.handleAddWord();
-                    this.vocabularyInput.focus();
-                }
-            });
-        });
-        this.step2.addEventListener('click', () => {
-            this.step1.classList.remove('active');
-            this.step2.classList.add('active');
-            this.step3.classList.remove('active');
-        
-            this.train.innerHTML = `<div id="step-2-contaner" class="step2 container mt-5">
-                <h1>STEP 2: check listen</h1>
-                <div class="row">
-                    <div class="col-9">
-                        <button class="sound-button w-100" id="btn-train-vocabulary">Bắt đầu</button>
-                    </div>
-                    <div class="col-3 ps-3">
-                        <button class="sound-button w-100" id="btn-repeat-word">Nghe lại</button>
-                    </div>
-                </div>
-                <div id="check-result-vocabulary"></div>
-                <div class="input-row">
-                    <input type="text" placeholder="Nhập từ vựng..." id="vocabulary-input-step2">
-                </div>
-                <div class="progress-container">
-                    <div id='progress-vocabulary' class="progress-bar" style="width: 0%"></div>
-                </div>
-            </div>`;
-        
-            this.btnTrainVocabulary = document.getElementById('btn-train-vocabulary');
-            this.btnRepeatWord = document.getElementById('btn-repeat-word');
-            this.resultVocabulary = document.getElementById('check-result-vocabulary');
-            this.progressVocabulary = document.getElementById('progress-vocabulary');
-            this.inputVocabularyStep2 = document.getElementById('vocabulary-input-step2');
-        
-            const getRandom = createUniqueRandom(this.manager.vocabularyList.length - 1);
-            const vocabularyList = this.manager.vocabularyList;
-            let correctCount = 1;
-            let currentWord = '';
-            let currentDescription = '';
-        
-            const pickNewWord = () => {
-                const { word, description } = vocabularyList[getRandom()];
-                currentWord = word;
-                currentDescription = description;
-        
-                const speech = new SpeechSynthesisUtterance(word);
-                speech.lang = 'en-US';
-                window.speechSynthesis.speak(speech);
-            };
-        
-            this.btnTrainVocabulary.addEventListener('click', () => {
-                pickNewWord(); // Lấy từ đầu tiên khi bắt đầu
-            });
-        
-            this.btnRepeatWord.addEventListener('click', () => {
-                if (currentWord) {
-                    const speech = new SpeechSynthesisUtterance(currentWord);
-                    speech.lang = 'en-US';
-                    window.speechSynthesis.speak(speech);
-                }
-            });
-        
-            this.inputVocabularyStep2.addEventListener('keyup', (event) => {
-                if (event.key === 'Enter') {
-                    if (this.inputVocabularyStep2.value.trim().toLowerCase() === currentWord.toLowerCase()) {
-                        this.resultVocabulary.textContent = `${currentWord} : ${currentDescription}`;
-                        this.inputVocabularyStep2.value = '';
-                        this.progressVocabulary.style.width = `${(correctCount * 100) / this.manager.vocabularyList.length}%`;
-                        pickNewWord(); // Lấy từ tiếp theo
-                        correctCount++;
-                    } else {
-                        this.resultVocabulary.textContent = `Incorrect!`;
-                        this.resultVocabulary.classList.add('blink');
-                        setTimeout(() => {
-                            this.resultVocabulary.classList.remove('blink');
-                        }, 1000);
-                    }
-                }
-            });
-        });        
-        this.step3.addEventListener('click', () => {
-            // Chuyển đổi trạng thái active giữa các bước
-            this.step1.classList.remove('active');
-            this.step2.classList.remove('active');
-            this.step3.classList.add('active');
-        
-            this.train.innerHTML = `<div id="step-3-container" class="step2 container mt-5">
-                <h1>STEP 2: check disciption</h1>
-                <p id="description-text" class="description-box fs-3"></p>
-                <div class="text-danger fw-bold mt-3" id="check-result-vocabulary"></div>
-                <div class="input-row">
-                    <input type="text" placeholder="Nhập từ vựng..." id="vocabulary-input-step3">
-                </div>
-                <div class="progress-container" style="width: 100%; background: #ddd; height: 20px; border-radius: 5px; margin-top: 10px;">
-                    <div id='progress-vocabulary' class="progress-bar" style="width: 0%; height: 100%; background: #4caf50; border-radius: 5px; transition: width 0.3s ease-in-out;">&nbsp;</div>
-                </div>
-            </div>`;
-        
-            this.resultVocabulary = document.getElementById('check-result-vocabulary');
-            this.progressVocabulary = document.getElementById('progress-vocabulary');
-            this.inputVocabularyStep3 = document.getElementById('vocabulary-input-step3');
-            this.descriptionText = document.getElementById('description-text');
-        
-            const getRandom = createUniqueRandom(this.manager.vocabularyList.length - 1);
-            const vocabularyList = this.manager.vocabularyList;
-            let correctCount = 0;
-        
-            let currentWord = '';
-            let currentDescription = '';
-        
-            const pickNewWord = () => {
-                const { word, description } = vocabularyList[getRandom()];
-                currentWord = word;
-                currentDescription = description;
-                
-                this.descriptionText.textContent = description; // Hiển thị mô tả thay vì từ
-            };
-        
-            this.inputVocabularyStep3.addEventListener('keyup', (event) => {
-                if (event.key === 'Enter') {
-                    if (this.inputVocabularyStep3.value.trim().toLowerCase() === currentWord.toLowerCase()) {
-                        this.resultVocabulary.textContent = `${currentWord} : ${currentDescription}`;
-                        this.inputVocabularyStep3.value = '';
-                        
-                        correctCount++;
-                        let progressPercent = ((correctCount) / vocabularyList.length) * 100;
-                        this.progressVocabulary.style.width = `${progressPercent}%`;
-                        this.progressVocabulary.textContent = `${Math.round(progressPercent)}%`;
-                        
-                        // Phát âm từ
-                        const speech = new SpeechSynthesisUtterance(currentWord);
-                        speech.lang = 'en-US';
-                        window.speechSynthesis.speak(speech);
-                        
-                        pickNewWord(); // Lấy từ tiếp theo
-                    } else {
-                        this.resultVocabulary.textContent = `Incorrect!`;
-                        this.resultVocabulary.classList.add('blink');
-                        setTimeout(() => {
-                            this.resultVocabulary.classList.remove('blink');
-                        }, 1000);
-                    }
-                }
-            });
-        
-            pickNewWord(); // Bắt đầu với một từ ngẫu nhiên
-        });
-        
-        
-               
-        this.toggleAddButton.addEventListener('click', () => {
-            this.toggleAddSection();
-        });
-
-        this.step1.click();
+      // Hiển thị danh sách từ vựng
+      this.renderVocabularyList();
+  
+      // Gán sự kiện cho các nút bước
+      this.stepButtons.step1.addEventListener('click', () => this.setupStep1());
+      this.stepButtons.step2.addEventListener('click', () => this.setupStep2());
+      this.stepButtons.step3.addEventListener('click', () => this.setupStep3());
+  
+      // Mặc định hiển thị step1
+      this.stepButtons.step1.click();
     }
-    
-
-    /**
-     * Thêm tất cả từ vựng từ mảng vào giao diện
-     */
+  
+    // Hàm trợ giúp: Phát âm từ (speak)
+    speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US'; // ngữ âm tiếng Anh (accent)
+      window.speechSynthesis.speak(utterance);
+    }
+  
+    // Render danh sách từ vựng ở sidebar
     renderVocabularyList() {
-        // Xóa nội dung cũ để tránh trùng lặp
-        this.vocabularyListEl.innerHTML = '';
-
-        // Lặp qua từng từ và tạo phần tử hiển thị
-        this.manager.vocabularyList.forEach(({ word, description }) => {
-            const listItem = this.createVocabularyItemElement(word, description);
-            this.vocabularyListEl.appendChild(listItem);
-        });
+      this.vocabularyListElement.innerHTML = '';
+      this.manager.vocabularyList.forEach(({ word, description }) => {
+        const listItem = this.createVocabularyItemElement(word, description);
+        this.vocabularyListElement.appendChild(listItem);
+      });
+      this.addWordButton.textContent = `Add Word (${this.manager.vocabularyList.length})`;
     }
-
-    /**
-     * Tạo phần tử hiển thị một từ vựng
-     * @param {string} word
-     * @param {string} description
-     */
+  
+    // Tạo phần tử hiển thị cho một từ vựng
     createVocabularyItemElement(word, description) {
-        // Tạo thẻ <li>
-        const listItem = document.createElement('li');
-
-        // Tạo nội dung từ
-        const wordText = document.createElement('span');
-        wordText.textContent = word;
-
-        // Tạo phần mô tả từ
-        const wordDescription = document.createElement('span');
-        wordDescription.textContent = description;
-        wordDescription.classList.add('description');
-
-        // Nút xóa từ
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'X';
-        deleteButton.classList.add('delete-button');
-
-        // Xử lý sự kiện xóa khi bấm nút
-        deleteButton.addEventListener('click', (event) => {
-            event.stopPropagation();
-            listItem.remove(); // Xóa khỏi giao diện
-            this.manager.removeWord(word); // Xóa khỏi danh sách và localStorage
-        });
-
-        // Sự kiện click vào listItem để đọc từ
-        listItem.addEventListener('click', () => {
-            const speech = new SpeechSynthesisUtterance(word);
-            speech.lang = 'en-US';
-            window.speechSynthesis.speak(speech);
-        });
-
-        // Thêm các phần tử con vào li
-        listItem.appendChild(wordText);
-        listItem.appendChild(wordDescription);
-        listItem.appendChild(deleteButton);
-
-        return listItem;
+      const listItem = document.createElement('li');
+  
+      const wordSpan = document.createElement('span');
+      wordSpan.textContent = word;
+  
+      const descriptionSpan = document.createElement('span');
+      descriptionSpan.textContent = description;
+      descriptionSpan.classList.add('description');
+  
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'X';
+      deleteButton.classList.add('delete-button');
+      deleteButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        listItem.remove();
+        this.manager.removeWord(word);
+        this.renderVocabularyList(); // cập nhật số lượng từ
+      });
+  
+      listItem.addEventListener('click', () => this.speak(word));
+  
+      listItem.append(wordSpan, descriptionSpan, deleteButton);
+      return listItem;
     }
-
-    /**
-     * Xử lý logic khi bấm nút "Add Word"
-     */
+  
+    // Xử lý logic khi bấm nút "Add Word"
     handleAddWord() {
-        const word = this.vocabularyInput.value.trim();
-        const description = this.descriptionInput.value.trim();
-
-        if (!word || !description) {
-            alert('Please enter both the word and its description (giải thích)!');
-            return;
-        }
-
-        // Thêm vào manager và lưu
-        this.manager.addWord(word, description);
-
-        // Tạo phần tử giao diện
-        const newItem = this.createVocabularyItemElement(word, description);
-        this.vocabularyListEl.appendChild(newItem);
-
-        // Xóa dữ liệu trong ô input
-        this.vocabularyInput.value = '';
-        this.descriptionInput.value = '';
+      const word = this.vocabularyInput.value.trim();
+      const description = this.descriptionInput.value.trim();
+        console.log(word);
+        console.log(description);
+      if (!word || !description) {
+        alert('Please enter both the word and its description (giải thích)!');
+        return;
+      }
+  
+      this.manager.addWord(word, description);
+      const newItem = this.createVocabularyItemElement(word, description);
+      this.vocabularyListElement.appendChild(newItem);
+      this.vocabularyInput.value = '';
+      this.descriptionInput.value = '';
+      this.addWordButton.textContent = `Add Word (${this.manager.vocabularyList.length})`;
     }
-
-    /**
-     * Xử lý logic khi bấm nút "Check Word"
-     */
+  
+    // Xử lý logic khi kiểm tra từ (Step 1)
     handleCheckWord() {
-        const wordToCheck = this.checkInput.value.trim();
-
-        if (!wordToCheck) {
-            this.checkResult.textContent = 'Please enter a word to check!';
-            this.checkResult.style.color = 'red';
-            return;
-        }
-
-        // Tìm từ trong danh sách
-        const match = this.manager.findWord(wordToCheck);
-        const findExis = this.manager.correctWordsListEl.find(s=>s.word.toLowerCase() === wordToCheck.toLowerCase())
-        let resultCount = undefined;
-        if (match && !findExis) {
-            
-            this.checkResult.style.color = 'green';
-            // Phát âm (pronounce) từ vừa nhập
-            const speech = new SpeechSynthesisUtterance(match.word);
-            speech.lang = 'en-US'; // Bạn có thể thay đổi accent
-            window.speechSynthesis.speak(speech);
-
-            this.manager.correctWordsListEl.push({ word : match.word , description : match.description });
-            this.correctWordsListEl.innerHTML=``;
-            resultCount = `${this.manager.correctWordsListEl.length}/ ${this.manager.vocabularyList.length}`
-            this.checkResult.textContent = `"${match.word}" : ${match.description} ( ${resultCount} )`;
-            this.manager.correctWordsListEl.forEach(({ word, description }) => {
-                const listItem = document.createElement('li');
-                listItem.textContent = `${word} : ${description}`
-                this.correctWordsListEl.appendChild(listItem);
-                // Sự kiện click vào listItem để đọc từ
-                listItem.addEventListener('click', () => {
-                    const speech = new SpeechSynthesisUtterance(word);
-                    speech.lang = 'en-US';
-                    window.speechSynthesis.speak(speech);
-                });
-            });
-
+      const wordToCheck = this.checkInput.value.trim();
+      if (!wordToCheck) {
+        this.checkResult.textContent = 'Please enter a word to check!';
+        this.checkResult.style.color = 'red';
+        return;
+      }
+  
+      const matchedWord = this.manager.findWord(wordToCheck);
+      const alreadyChecked = this.manager.correctWords.find(
+        item => item.word.toLowerCase() === wordToCheck.toLowerCase()
+      );
+      let resultCount;
+      if (matchedWord && !alreadyChecked) {
+        this.checkResult.style.color = 'green';
+        this.speak(matchedWord.word);
+        this.manager.correctWords.push(matchedWord);
+        this.correctWordsListElement.innerHTML = '';
+        resultCount = `${this.manager.correctWords.length} / ${this.manager.vocabularyList.length}`;
+        this.checkResult.textContent = `"${matchedWord.word}" : ${matchedWord.description} ( ${resultCount} )`;
+  
+        this.manager.correctWords.forEach(({ word, description }) => {
+          const li = document.createElement('li');
+          li.textContent = `${word} : ${description}`;
+          li.addEventListener('click', () => this.speak(word));
+          this.correctWordsListElement.appendChild(li);
+        });
+      } else {
+        if (alreadyChecked) {
+          this.speak(wordToCheck);
+          resultCount = `${this.manager.correctWords.length} / ${this.manager.vocabularyList.length}`;
+          this.checkResult.textContent = `${alreadyChecked.word} : ${alreadyChecked.description} (${resultCount})`;
         } else {
-            findExis && (() => {
-                const speech = new SpeechSynthesisUtterance(wordToCheck);
-                    speech.lang = 'en-US';
-                    window.speechSynthesis.speak(speech);
-                resultCount = `${this.manager.correctWordsListEl.length}/ ${this.manager.vocabularyList.length}`
-            })()
-            let message = !findExis ? 'Incorrect !' : `${findExis.word} : ${findExis.description} (${resultCount||'N/A'})`
-            this.checkResult.textContent = message;
-            this.checkResult.style.color = 'red';
+          this.checkResult.textContent = 'Incorrect!';
         }
-
-        // Xóa dữ liệu trong ô input
-        this.checkInput.value = '';
+        this.checkResult.style.color = 'red';
+      }
+      this.checkInput.value = '';
     }
-
-    /**
-     * Đóng/mở phần Add Vocabulary
-     */
+  
+    // Setup giao diện cho Step 1: Check Word
+    setupStep1() {
+      this.activateStepButton('step1');
+      this.trainContainer.innerHTML = `
+        <div class="step2 container mt-5">
+          <h1>STEP 1: check word</h1>
+          <div id="check-result"></div>
+          <input type="text" id="check-input" placeholder="Enter a word to check..." />
+          <button class="d-none" id="check-word-button">Check</button>
+          <ul id="correct-words-list"></ul>
+        </div>
+      `;
+  
+      // Lấy các phần tử vừa được render
+      this.checkResult = document.getElementById('check-result');
+      this.checkInput = document.getElementById('check-input');
+      this.checkWordButton = document.getElementById('check-word-button');
+      this.correctWordsListElement = document.getElementById('correct-words-list');
+  
+      // Sự kiện khi nhấn Enter trong ô check-input
+      this.checkInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+          this.handleCheckWord();
+        }
+      });
+  
+      // Sự kiện nhấn Enter trong ô description để add word (giữ con trỏ ở vocabulary-input)
+      this.descriptionInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+          this.handleAddWord();
+          this.vocabularyInput.focus();
+        }
+      });
+    }
+  
+    // Setup giao diện cho Step 2: Check Listen
+    setupStep2() {
+      this.activateStepButton('step2');
+      this.trainContainer.innerHTML = `
+        <div id="step-2-contaner" class="step2 container mt-5">
+          <h1>STEP 2: check listen</h1>
+          <div class="mb-5 row">
+            <div class="col-9">
+              <button class="sound-button w-100" id="btn-train-vocabulary">Bắt đầu</button>
+            </div>
+            <div class="col-3 ps-3">
+              <button class="sound-button w-100" id="btn-repeat-word">Lại</button>
+            </div>
+          </div>
+          <div id="check-result-vocabulary"></div>
+          <div class="input-row">
+            <input type="text" placeholder="Nhập từ vựng..." id="vocabulary-input-step2">
+          </div>
+          <div class="progress-container">
+            <div id="progress-vocabulary" class="progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
+      `;
+  
+      // Lấy các phần tử cần thiết cho Step 2
+      const btnTrainVocabulary = document.getElementById('btn-train-vocabulary');
+      const btnRepeatWord = document.getElementById('btn-repeat-word');
+      this.resultVocabulary = document.getElementById('check-result-vocabulary');
+      this.progressVocabulary = document.getElementById('progress-vocabulary');
+      this.inputVocabularyStep2 = document.getElementById('vocabulary-input-step2');
+  
+      // Tạo hàm random duy nhất cho danh sách từ vựng
+      const getRandom = createUniqueRandom(this.manager.vocabularyList.length - 1);
+      const vocabularyList = this.manager.vocabularyList;
+      let currentWord = '';
+      let currentDescription = '';
+      let correctCount = 1;
+  
+      const pickNewWord = () => {
+        const { word, description } = vocabularyList[getRandom()];
+        currentWord = word;
+        currentDescription = description;
+        this.speak(word);
+      };
+  
+      btnTrainVocabulary.addEventListener('click', () => pickNewWord());
+      btnRepeatWord.addEventListener('click', () => {
+        if (currentWord) this.speak(currentWord);
+      });
+  
+      this.inputVocabularyStep2.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+          const userInput = this.inputVocabularyStep2.value.trim().toLowerCase();
+          if (userInput === currentWord.toLowerCase()) {
+            this.resultVocabulary.textContent = `${currentWord} : ${currentDescription}`;
+            this.inputVocabularyStep2.value = '';
+            const progressPercent = (correctCount * 100) / vocabularyList.length;
+            this.progressVocabulary.style.width = `${progressPercent}%`;
+            pickNewWord();
+            correctCount++;
+          } else {
+            this.resultVocabulary.textContent = `Incorrect!`;
+            this.resultVocabulary.classList.add('blink');
+            setTimeout(() => this.resultVocabulary.classList.remove('blink'), 1000);
+          }
+        }
+      });
+    }
+  
+    // Setup giao diện cho Step 3: Check Description
+    setupStep3() {
+      this.activateStepButton('step3');
+      this.trainContainer.innerHTML = `
+        <div id="step-3-container" class="step2 container mt-5">
+          <h1>STEP 2: check description</h1>
+          <p id="description-text" class="description-box fs-3"></p>
+          <div class="text-danger fw-bold mt-3" id="check-result-vocabulary"></div>
+          <div class="input-row">
+            <input type="text" placeholder="Nhập từ vựng..." id="vocabulary-input-step3">
+          </div>
+          <div class="progress-container" style="width: 100%; background: #ddd; height: 20px; border-radius: 5px; margin-top: 10px;">
+            <div id="progress-vocabulary" class="progress-bar" style="width: 0%; height: 100%; background: #4caf50; border-radius: 5px; transition: width 0.3s ease-in-out;">&nbsp;</div>
+          </div>
+        </div>
+      `;
+  
+      this.resultVocabulary = document.getElementById('check-result-vocabulary');
+      this.progressVocabulary = document.getElementById('progress-vocabulary');
+      this.inputVocabularyStep3 = document.getElementById('vocabulary-input-step3');
+      this.descriptionText = document.getElementById('description-text');
+  
+      const getRandom = createUniqueRandom(this.manager.vocabularyList.length - 1);
+      const vocabularyList = this.manager.vocabularyList;
+      let currentWord = '';
+      let currentDescription = '';
+      let correctCount = 0;
+  
+      const pickNewWord = () => {
+        const { word, description } = vocabularyList[getRandom()];
+        currentWord = word;
+        currentDescription = description;
+        this.descriptionText.textContent = description;
+      };
+  
+      this.inputVocabularyStep3.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+          if (this.inputVocabularyStep3.value.trim().toLowerCase() === currentWord.toLowerCase()) {
+            this.resultVocabulary.textContent = `${currentWord} : ${currentDescription}`;
+            this.inputVocabularyStep3.value = '';
+            correctCount++;
+            const progressPercent = (correctCount / vocabularyList.length) * 100;
+            this.progressVocabulary.style.width = `${progressPercent}%`;
+            this.progressVocabulary.textContent = `${Math.round(progressPercent)}%`;
+            this.speak(currentWord);
+            pickNewWord();
+          } else {
+            this.resultVocabulary.textContent = `Incorrect!`;
+            this.resultVocabulary.classList.add('blink');
+            setTimeout(() => this.resultVocabulary.classList.remove('blink'), 1000);
+          }
+        }
+      });
+  
+      pickNewWord();
+    }
+  
+    // Đặt trạng thái active cho nút bước được chọn
+    activateStepButton(stepId) {
+      Object.keys(this.stepButtons).forEach(id => {
+        if (id === stepId) {
+          this.stepButtons[id].classList.add('active');
+        } else {
+          this.stepButtons[id].classList.remove('active');
+        }
+      });
+    }
+  
+    // Mở/đóng phần Add Vocabulary
     toggleAddSection() {
-        const isCollapsed = this.addSection.classList.contains('collapsed');
-
-        // Nếu đang đóng, mở ra
-        if (isCollapsed) {
-            this.addSection.classList.remove('collapsed');
-            this.addVocabularySection.classList.remove('d-none');
-            this.toggleIcon.textContent = '◀';
-        } 
-        // Nếu đang mở, thì đóng lại
-        else {
-            this.addSection.classList.add('collapsed');
-            this.addVocabularySection.classList.add('d-none');
-            this.toggleIcon.textContent = '▶';
-        }
+      const isCollapsed = this.addSection.classList.contains('collapsed');
+      if (isCollapsed) {
+        this.addSection.classList.remove('collapsed');
+        this.addVocabularySection.classList.remove('d-none');
+        this.toggleIcon.textContent = '◀';
+      } else {
+        this.addSection.classList.add('collapsed');
+        this.addVocabularySection.classList.add('d-none');
+        this.toggleIcon.textContent = '▶';
+      }
     }
-}
-function createUniqueRandom(n) {
-    let numbers = Array.from({ length: n + 1 }, (_, i) => i);
+  }
+  
+  // Hàm helper: Tạo số ngẫu nhiên duy nhất trong khoảng 0 đến max
+  function createUniqueRandom(max) {
+    const numbers = Array.from({ length: max + 1 }, (_, i) => i);
     let availableNumbers = [...numbers];
-
+  
     return function () {
-        if (availableNumbers.length === 0) {
-            availableNumbers = [...numbers]; // Reset lại danh sách khi tất cả số đã được chọn
-        }
-        
-        const index = Math.floor(Math.random() * availableNumbers.length);
-        return availableNumbers.splice(index, 1)[0]; // Lấy số và xóa khỏi danh sách
+      if (availableNumbers.length === 0) {
+        availableNumbers = [...numbers]; // reset danh sách khi đã dùng hết
+      }
+      const index = Math.floor(Math.random() * availableNumbers.length);
+      return availableNumbers.splice(index, 1)[0];
     };
-}
-// Khởi chạy ứng dụng khi DOM đã sẵn sàng
-document.addEventListener('DOMContentLoaded', () => {
+  }
+  
+  // Khởi chạy ứng dụng khi DOM đã sẵn sàng
+  document.addEventListener('DOMContentLoaded', () => {
     const app = new VocabularyApp();
     app.init();
-});
+  });
+  

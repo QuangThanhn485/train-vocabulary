@@ -14,6 +14,14 @@ body {
     height: 100%;
     background: #ffffff;
     overflow: hidden;
+    .word-list{
+        max-height: 80vh !important;
+        height: 80vh !important;           /* Chiều cao bằng toàn bộ màn hình (viewport height) */
+        overflow-y: auto;        /* Hiển thị thanh cuộn dọc nếu nội dung vượt quá */
+        overflow-x: auto;        /* Hiển thị thanh cuộn ngang nếu cần */
+        padding: 10px;           /* Khoảng cách bên trong ul */
+        box-sizing: border-box;  /* Bao gồm padding và border trong tính toán chiều cao */
+    }
 }
 
 .left-section {

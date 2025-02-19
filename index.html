@@ -70,7 +70,7 @@
       aria-labelledby="vocabularyModalLabel"
       aria-hidden="true"
     >
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="vocabularyModalLabel">Add Vocabulary</h5>
@@ -101,6 +101,13 @@
                 ></textarea>
               </div>
             </form>
+            <button id="import-word-button" class="btn btn-secondary">
+              Import File
+            </button>
+            <input type="file" id="import-file-input" accept=".txt,.json" style="display: none;" />
+            <button id="export-file-button" class="btn btn-secondary">
+              Export File
+            </button>
           </div>
           <div class="modal-footer">
             <!-- Giữ nguyên id add-word-button để xử lý chức năng thêm từ -->

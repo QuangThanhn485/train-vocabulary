@@ -395,3 +395,59 @@ class VocabularyManager {
     app.init();
   });
   
+// Lắng nghe sự kiện khi nhấn nút Import File
+document.getElementById('import-word-button').addEventListener('click', function() {
+  document.getElementById('import-file-input').click();
+});
+
+document.getElementById('import-file-input').addEventListener('change', function(e) {
+  const fileInput = e.target; // Get the file input element
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader(); // FileReader: object to read file data
+  reader.onload = function(e) {
+    const content = e.target.result;
+    localStorage.setItem('vocabulary', content);
+    alert('Vocabulary updated successfully! (Từ vựng đã được cập nhật thành công!)');
+    
+    // Refresh the app if needed
+    const app = new VocabularyApp();
+    app.init();
+
+    // Reset the file input so selecting the same file again will trigger the change event
+    fileInput.value = '';
+  };
+
+  reader.readAsText(file);
+});
+
+
+// Event listener for the Export File button
+document.getElementById('export-file-button').addEventListener('click', function() {
+  const vocabularyContent = localStorage.getItem('vocabulary');
+  
+  if (!vocabularyContent) {
+    alert('No vocabulary data found! (Không tìm thấy dữ liệu từ vựng!)');
+    return;
+  }
+
+  const blob = new Blob([vocabularyContent], { type: 'text/plain' });
+  
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'vocabulary.txt';
+  
+  document.body.appendChild(a);
+  
+  a.click();
+  
+  document.body.removeChild(a);
+  
+  URL.revokeObjectURL(url);
+  
+  alert('Vocabulary exported successfully! (Xuất file từ vựng thành công!)');
+});
+

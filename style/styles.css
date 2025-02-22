@@ -7,6 +7,14 @@ body {
     height: 100vh;
     overflow: hidden;
 }
+button.disabled {
+    background-color: #cccccc; /* Màu xám */
+    color: #666666; /* Màu chữ nhạt */
+    border: 1px solid #aaaaaa;
+    cursor: not-allowed; /* Đổi con trỏ chuột thành hình bị chặn */
+    opacity: 0.6; /* Làm mờ */
+}
+
 
 .container-custom {
     display: flex;
@@ -154,7 +162,14 @@ ul {
     padding: 10px;     /* Khoảng cách bên trong ul */
     /* border: 1px solid #ccc; Viền để dễ nhìn */
   }
-
+.container #check-result-vocabulary{
+    min-height: 20px;
+    min-width: 10px;
+    font-size: 1.2rem;
+    color: #007bff;
+    margin-bottom: 5px;
+    padding-left: 0px;
+}
 .step2{
     * {
         margin: 0;
@@ -213,7 +228,7 @@ ul {
         border: none;
         padding: 12px 25px;
         border-radius: 8px;
-        font-size: 16px;
+        font-size: 1.2rem;
         cursor: pointer;
         transition: background-color 0.3s ease;
         width: 100%;
@@ -231,6 +246,9 @@ ul {
     .sound-button i {
         font-size: 16px;
     }
+    .sound-button.reset-button{
+        background-color: #f44336;
+    }
 
     .progress-container {
         background-color: #e0e0e0;
@@ -246,6 +264,22 @@ ul {
         border-radius: 8px;
         transition: width 0.3s ease;
     }
+    .help-container{
+        margin-top: 1rem;
+        align-items: center;
+        text-align: center;
+        height: auto;
+        width: 100%;
+    }
+    .help-container p{
+        font-size: 1.2rem;
+        color: #1a73e8;
+        font-weight: bold;
+    }
+    .hidden-result {
+        visibility: hidden;
+    }
+    
 
     @media (max-width: 480px) {
         .container {

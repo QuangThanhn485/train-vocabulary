@@ -230,13 +230,16 @@ class VocabularyManager {
         <div id="step-2-contaner" class="step2 container mt-5">
           <h1>STEP 2: check listen</h1>
           <div class="mb-5 row">
-            <div class="col-9">
-              <button class="sound-button w-100" id="btn-train-vocabulary">Bắt đầu</button>
+            <div class="col-8">
+              <button class="sound-button w-100" id="btn-train-vocabulary">Start</button>
             </div>
-            <div class="col-3 ps-3">
-              <button class="sound-button w-100" id="btn-repeat-word">Lại</button>
+            <div class="col-2 ps-2">
+              <button class="sound-button w-100" id="btn-repeat-word" title="listen again !">Again</button>
             </div>
-          </div>
+            <div class="col-2 ps-2">
+              <button class="sound-button w-100 reset-button" id="btn-restart-word" title="Restart progress!">Restart</button>
+            </div>
+            </div>
           <div id="check-result-vocabulary"></div>
           <div class="input-row">
             <input type="text" placeholder="Nhập từ vựng..." id="vocabulary-input-step2">
@@ -244,15 +247,21 @@ class VocabularyManager {
           <div class="progress-container">
             <div id="progress-vocabulary" class="progress-bar" style="width: 0%"></div>
           </div>
+          <div id="help-step2" class="help-container" data-result="">
+            <p class="help-text">Crl + X to get suggestions</p>
+          </div>
         </div>
       `;
   
       // Lấy các phần tử cần thiết cho Step 2
+      let wordsFailed = [];
       const btnTrainVocabulary = document.getElementById('btn-train-vocabulary');
       const btnRepeatWord = document.getElementById('btn-repeat-word');
+      this.btnRestart = document.getElementById('btn-restart-word');
       this.resultVocabulary = document.getElementById('check-result-vocabulary');
       this.progressVocabulary = document.getElementById('progress-vocabulary');
       this.inputVocabularyStep2 = document.getElementById('vocabulary-input-step2');
+      this.helpStep2 = document.getElementById('help-step2');
   
       // Tạo hàm random duy nhất cho danh sách từ vựng
       const getRandom = createUniqueRandom(this.manager.vocabularyList.length - 1);
@@ -260,18 +269,29 @@ class VocabularyManager {
       let currentWord = '';
       let currentDescription = '';
       let correctCount = 1;
-  
+      
       const pickNewWord = () => {
         const { word, description } = vocabularyList[getRandom()];
         currentWord = word;
         currentDescription = description;
         this.speak(word);
+        document.addEventListener("keydown",
+           (event) => keydownHandler(event, showHelp, this.helpStep2, `${currentWord} : ${currentDescription}`, 5000));
       };
+      const restart = () => {
+        correctCount = 1;
+        this.progressVocabulary.style.width = '0%';
+        this.resultVocabulary.classList.add('hidden-result');
+        setTimeout(() => {
+          pickNewWord();
+        }, 1000);
+      }
   
       btnTrainVocabulary.addEventListener('click', () => pickNewWord());
       btnRepeatWord.addEventListener('click', () => {
         if (currentWord) this.speak(currentWord);
       });
+      this.btnRestart.addEventListener('click', () => restart());
   
       this.inputVocabularyStep2.addEventListener('keyup', (event) => {
         if (event.key === 'Enter') {
@@ -284,9 +304,24 @@ class VocabularyManager {
             pickNewWord();
             correctCount++;
           } else {
+            let wordsFailed = JSON.parse(localStorage.getItem("wordsFailed")) || [];
+            let index = wordsFailed.findIndex(word => word.word === currentWord);
+            if (index !== -1) {
+                wordsFailed[index].countFail += 1;
+            } else {
+                wordsFailed.push({
+                    word: currentWord,
+                    description: currentDescription,
+                    countFail: 1
+                });
+            }
+            wordsFailed.sort((a, b) => b.countFail - a.countFail);
+            localStorage.setItem("wordsFailed", JSON.stringify(wordsFailed));
+
+
             this.resultVocabulary.textContent = `Incorrect!`;
-            this.resultVocabulary.classList.add('blink');
-            setTimeout(() => this.resultVocabulary.classList.remove('blink'), 1000);
+            this.resultVocabulary.classList.add('hidden-result');
+            setTimeout(() => this.resultVocabulary.classList.remove('hidden-result'), 300);
           }
         }
       });
@@ -297,7 +332,7 @@ class VocabularyManager {
       this.activateStepButton('step3');
       this.trainContainer.innerHTML = `
         <div id="step-3-container" class="step2 container mt-5">
-          <h1>STEP 2: check description</h1>
+          <h1>STEP 3: check description</h1>
           <p id="description-text" class="description-box fs-3"></p>
           <div class="text-danger fw-bold mt-3" id="check-result-vocabulary"></div>
           <div class="input-row">
@@ -306,6 +341,9 @@ class VocabularyManager {
           <div class="progress-container" style="width: 100%; background: #ddd; height: 20px; border-radius: 5px; margin-top: 10px;">
             <div id="progress-vocabulary" class="progress-bar" style="width: 0%; height: 100%; background: #4caf50; border-radius: 5px; transition: width 0.3s ease-in-out;">&nbsp;</div>
           </div>
+          <div id="help-step2" class="help-container" data-result="">
+            <p class="help-text">Crl + X to get suggestions</p>
+          </div>
         </div>
       `;
   
@@ -313,6 +351,7 @@ class VocabularyManager {
       this.progressVocabulary = document.getElementById('progress-vocabulary');
       this.inputVocabularyStep3 = document.getElementById('vocabulary-input-step3');
       this.descriptionText = document.getElementById('description-text');
+      this.helpStep2 = document.getElementById('help-step2');
   
       const getRandom = createUniqueRandom(this.manager.vocabularyList.length - 1);
       const vocabularyList = this.manager.vocabularyList;
@@ -325,6 +364,8 @@ class VocabularyManager {
         currentWord = word;
         currentDescription = description;
         this.descriptionText.textContent = description;
+        document.addEventListener("keydown",
+          (event) => keydownHandler(event, showHelp, this.helpStep2, `${currentWord} : ${currentDescription}`, 5000));
       };
   
       this.inputVocabularyStep3.addEventListener('keyup', (event) => {
@@ -339,9 +380,24 @@ class VocabularyManager {
             this.speak(currentWord);
             pickNewWord();
           } else {
+            
+            let wordsFailed = JSON.parse(localStorage.getItem("wordsFailed")) || [];
+            let index = wordsFailed.findIndex(word => word.word === currentWord);
+            if (index !== -1) {
+                wordsFailed[index].countFail += 1;
+            } else {
+                wordsFailed.push({
+                    word: currentWord,
+                    description: currentDescription,
+                    countFail: 1
+                });
+            }
+            wordsFailed.sort((a, b) => b.countFail - a.countFail);
+            localStorage.setItem("wordsFailed", JSON.stringify(wordsFailed));
+
             this.resultVocabulary.textContent = `Incorrect!`;
-            this.resultVocabulary.classList.add('blink');
-            setTimeout(() => this.resultVocabulary.classList.remove('blink'), 1000);
+            this.resultVocabulary.classList.add('hidden-result');
+            setTimeout(() => this.resultVocabulary.classList.remove('hidden-result'), 1000);
           }
         }
       });
@@ -450,4 +506,27 @@ document.getElementById('export-file-button').addEventListener('click', function
   
   alert('Vocabulary exported successfully! (Xuất file từ vựng thành công!)');
 });
+function keydownHandler(event, callback, elmContainer, result, time = 5000) {
+  if (event.ctrlKey && event.code === "KeyX") {
+      event.preventDefault(); // Ngăn chặn hành vi mặc định của trình duyệt
+      event.stopPropagation(); // Ngăn chặn lan truyền sự kiện (nếu có)
 
+      // Gọi callback (showHelp) đúng cách
+      if (typeof callback === "function") {
+          callback(elmContainer, result, time);
+      }
+
+      // Xóa sự kiện sau khi thực thi
+      document.removeEventListener("keydown", keydownHandler);
+  }
+}
+function showHelp(elmContainer, result, time = 5000) {
+  if (!elmContainer) return;
+  
+  let html = `<p>${result}</p>`;
+  elmContainer.innerHTML = html;
+  
+  setTimeout(() => {
+      elmContainer.innerHTML = `<p class="help-text">Crl + X to get suggestions</p>`;
+  }, time);
+}
